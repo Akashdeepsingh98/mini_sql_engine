@@ -1,9 +1,9 @@
 def print_tables(tables):
-    for table in tables:
-        print(table["table_name"])
-        print(table["columns"])
-        for column in table["columns"]:
-            print(column+': '+str(table["data"][column]))
+    for table in tables.keys():
+        print(table)
+        print(tables[table]["columns"])
+        for column in tables[table]["columns"]:
+            print(column+': '+str(tables[table]["data"][column]))
 
 
 def get_table(Lines, start):
@@ -11,8 +11,7 @@ def get_table(Lines, start):
     start += 1
     table_name = Lines[start].strip()   # get table name
     start += 1
-    table = {"table_name": table_name,
-             "columns": [],
+    table = {"columns": [],
              "data": {}}
 
     while Lines[start].strip() != '<end_table>':  # read all column names of this table
@@ -23,7 +22,7 @@ def get_table(Lines, start):
 
     # start reading data file line by line
     datafile = open(table_name+'.csv', 'r')
-    print(table["columns"])
+    # print(table["columns"])
     while True:
         row = datafile.readline()
         if not row:
@@ -36,20 +35,30 @@ def get_table(Lines, start):
             # print(row[i])
             table["data"][column].append(row[i])
             i += 1
-    return table, start
+    return table_name, table, start
+
+
+def project(tables, table_name, columns):
+    # print(tables[table_name])
+    # ["data"][columns[0]])
+    for i in range(len(tables[table_name]["data"][columns[0]])):
+        for column in columns:
+            print(str(tables[table_name]["data"][column][i]), end='   ')
+        print()
 
 
 def get_tables():
-    tables = []
+    tables = {}
     metadata = open('metadata.txt', 'r')
     Lines = metadata.readlines()
     i = 0
     while i < len(Lines)-1:
-        table, i = get_table(Lines, i)
-        tables.append(table)
+        table_name, table, i = get_table(Lines, i)
+        tables[table_name] = table
     return tables
 
 
 if __name__ == '__main__':
     tables = get_tables()
-    print_tables(tables)
+    # print_tables(tables)
+    project(tables, 'table1', ['A', 'B'])
