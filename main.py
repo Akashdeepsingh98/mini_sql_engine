@@ -86,12 +86,29 @@ def Count(tables, table_name, column):
     print(len(tables[table_name]["data"][column]))
 
 
+def Distinct(tables, table_name, columns):
+    distinctset = set()
+    for i in range(len(tables[table_name]["data"][columns[0]])):
+        row = []
+        for column in columns:
+            row.append(tables[table_name]["data"][column][i])
+        distinctset.add(tuple(row))
+    for column in columns:
+        print(column, end='   ')
+    print()
+    for s in distinctset:
+        for i in range(len(columns)):
+            print(s[i], end="   ")
+        print()
+
+
 if __name__ == '__main__':
     tables = Get_tables()
     # print_tables(tables)
     Project(tables, 'table1', ['A', 'B'])
     #Sum(tables, 'table1', 'A')
     #Average(tables, 'table1', 'A')
-    Max(tables, 'table1', 'A')
-    Min(tables, 'table1', 'A')
-    Count(tables, 'table1', 'A')
+    #Max(tables, 'table1', 'A')
+    #Min(tables, 'table1', 'A')
+    #Count(tables, 'table1', 'A')
+    Distinct(tables, 'table1', ['A', 'B'])
