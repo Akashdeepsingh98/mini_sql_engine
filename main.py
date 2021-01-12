@@ -1,3 +1,12 @@
+Operators = {
+    ">=": (lambda x, y: x >= y),
+    "<=": (lambda x, y: x <= y),
+    ">": (lambda x, y: x > y),
+    "<": (lambda x, y: x < y),
+    "=": (lambda x, y: x == y)
+}
+
+
 def Print_tables(tables):
     for table in tables.keys():
         print(table)
@@ -101,6 +110,9 @@ def Distinct(tables, table_name, columns):
             print(s[i], end="   ")
         print()
 
+
+def Where(tables, table_name, columns, conditions):
+    pass
 
 if __name__ == '__main__':
     tables = Get_tables()
