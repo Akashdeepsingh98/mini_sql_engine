@@ -1,4 +1,4 @@
-def print_tables(tables):
+def Print_tables(tables):
     for table in tables.keys():
         print(table)
         print(tables[table]["columns"])
@@ -6,7 +6,7 @@ def print_tables(tables):
             print(column+': '+str(tables[table]["data"][column]))
 
 
-def get_table(Lines, start):
+def Get_table(Lines, start):
     # start reading from this tag
     start += 1
     table_name = Lines[start].strip()   # get table name
@@ -38,27 +38,60 @@ def get_table(Lines, start):
     return table_name, table, start
 
 
-def project(tables, table_name, columns):
-    # print(tables[table_name])
-    # ["data"][columns[0]])
+def Project(tables, table_name, columns):
+    for column in columns:
+        print(column, end='   ')
+    print()
+    # need to print the column names and data in a column aligned fashion
     for i in range(len(tables[table_name]["data"][columns[0]])):
         for column in columns:
             print(str(tables[table_name]["data"][column][i]), end='   ')
         print()
 
 
-def get_tables():
+def Get_tables():
     tables = {}
     metadata = open('metadata.txt', 'r')
     Lines = metadata.readlines()
     i = 0
     while i < len(Lines)-1:
-        table_name, table, i = get_table(Lines, i)
+        table_name, table, i = Get_table(Lines, i)
         tables[table_name] = table
     return tables
 
 
+def Sum(tables, table_name, column):
+    print("sum("+column+")")
+    print(sum(tables[table_name]["data"][column]))
+
+
+def Average(tables, table_name, column):
+    print("average("+column+")")
+    print(sum(tables[table_name]["data"][column]) /
+          len(tables[table_name]["data"][column]))
+
+
+def Max(tables, table_name, column):
+    print("max("+column+")")
+    print(max(tables[table_name]["data"][column]))
+
+
+def Min(tables, table_name, column):
+    print(column)
+    print(min(tables[table_name]["data"][column]))
+
+
+def Count(tables, table_name, column):
+    print("count("+column+")")
+    print(len(tables[table_name]["data"][column]))
+
+
 if __name__ == '__main__':
-    tables = get_tables()
+    tables = Get_tables()
     # print_tables(tables)
-    project(tables, 'table1', ['A', 'B'])
+    Project(tables, 'table1', ['A', 'B'])
+    #Sum(tables, 'table1', 'A')
+    #Average(tables, 'table1', 'A')
+    Max(tables, 'table1', 'A')
+    Min(tables, 'table1', 'A')
+    Count(tables, 'table1', 'A')
