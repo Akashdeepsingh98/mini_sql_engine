@@ -6,6 +6,11 @@ Operators = {
     "=": (lambda x, y: x == y)
 }
 
+Binary = {
+    "AND": (lambda x, y, z, w: x == y and z == w),
+    "OR": (lambda x, y, z, w: x == y or z == w)
+}
+
 
 def Print_tables(tables):
     for table in tables.keys():
@@ -112,7 +117,10 @@ def Distinct(tables, table_name, columns):
 
 
 def Where(tables, table_name, columns, conditions):
+    # conditions = {"type": "and", "col1": 23, "col2": 45}
+    
     pass
+
 
 if __name__ == '__main__':
     tables = Get_tables()
