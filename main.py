@@ -1,3 +1,5 @@
+import itertools
+
 Operators = {
     ">=": (lambda x, y: x >= y),
     "<=": (lambda x, y: x <= y),
@@ -16,8 +18,8 @@ def Print_tables(tables):
     for table in tables.keys():
         print(table)
         print(tables[table]["columns"])
-        for column in tables[table]["columns"]:
-            print(column+': '+str(tables[table]["data"][column]))
+        for row in tables[table]['data']:
+            print(row)
 
 
 def Get_table(Lines, start):
@@ -26,40 +28,34 @@ def Get_table(Lines, start):
     table_name = Lines[start].strip()   # get table name
     start += 1
     table = {"columns": [],
-             "data": {}}
+             "data": []}
 
     while Lines[start].strip() != '<end_table>':  # read all column names of this table
         table["columns"].append(Lines[start].strip())
-        table["data"][Lines[start].strip()] = []
         start += 1
     start += 1
 
     # start reading data file line by line
     datafile = open(table_name+'.csv', 'r')
-    # print(table["columns"])
+
     while True:
         row = datafile.readline()
         if not row:
             break
-        # convert row to list of ints
         row = list(map(int, row.strip().split(',')))
-        i = 0
-        # go through each element in a row and store in proper column
-        for column in table["columns"]:
-            # print(row[i])
-            table["data"][column].append(row[i])
-            i += 1
+        table['data'].append(row)
+
     return table_name, table, start
 
 
-def Project(tables, table_name, columns):
+def Project(data, columns):
     for column in columns:
         print(column, end='   ')
     print()
-    # need to print the column names and data in a column aligned fashion
-    for i in range(len(tables[table_name]["data"][columns[0]])):
-        for column in columns:
-            print(str(tables[table_name]["data"][column][i]), end='   ')
+    for row in data:
+        unrolled = list(itertools.chain.from_iterable(row))
+        for ele in unrolled:
+            print(ele, end='   ')
         print()
 
 
@@ -75,60 +71,86 @@ def Get_tables():
 
 
 def Sum(tables, table_name, column):
-    print("sum("+column+")")
-    print(sum(tables[table_name]["data"][column]))
+    index = tables[table_name]["columns"].index(column)
+    result = 0
+    for i in range(len(tables[table_name]["data"])):
+        result += tables[table_name]["data"][i][index]
+    return result
 
 
 def Average(tables, table_name, column):
-    print("average("+column+")")
-    print(sum(tables[table_name]["data"][column]) /
-          len(tables[table_name]["data"][column]))
+    return Sum(tables, table_name, column) / len(tables[table_name]["data"])
 
 
 def Max(tables, table_name, column):
-    print("max("+column+")")
-    print(max(tables[table_name]["data"][column]))
+    index = tables[table_name]["columns"].index(column)
+    result = tables[table_name]["data"][0][index]
+    for i in range(1, len(tables[table_name]["data"])):
+        if tables[table_name]["data"][i][index] > result:
+            result = tables[table_name]["data"][i][index]
+    return result
 
 
 def Min(tables, table_name, column):
-    print(column)
-    print(min(tables[table_name]["data"][column]))
+    index = tables[table_name]["columns"].index(column)
+    result = tables[table_name]["data"][0][index]
+    for i in range(1, len(tables[table_name]["data"])):
+        if tables[table_name]["data"][i][index] < result:
+            result = tables[table_name]["data"][i][index]
+    return result
 
 
 def Count(tables, table_name, column):
-    print("count("+column+")")
-    print(len(tables[table_name]["data"][column]))
+    return(len(tables[table_name]["data"]))
 
 
 def Distinct(tables, table_name, columns):
     distinctset = set()
-    for i in range(len(tables[table_name]["data"][columns[0]])):
-        row = []
-        for column in columns:
-            row.append(tables[table_name]["data"][column][i])
-        distinctset.add(tuple(row))
+    # get indexes of columns
+    indexes = []
     for column in columns:
-        print(column, end='   ')
-    print()
-    for s in distinctset:
-        for i in range(len(columns)):
-            print(s[i], end="   ")
-        print()
+        indexes.append(tables[table_name]["columns"].index(column))
+    for i in range(len(tables[table_name]["data"])):
+        row = []
+        for j in indexes:
+            row.append(tables[table_name]["data"][i][j])
+        distinctset.add(tuple(row))
+    return distinctset
 
 
 def Where(tables, table_name, columns, conditions):
     # conditions = {"type": "and", "col1": 23, "col2": 45}
-    
+
     pass
+
+
+def Parse(tables):
+    userin = "SELECT * FROM table1, table2"
+    tokens = userin.lower().strip().split(' ')
+    for i in range(len(tokens)):
+        tokens[i] = tokens[i].strip(',')
+    if 'where' in tokens:
+        pass
+    else:
+        from_ind = tokens.index('from')
+        table_names = tokens[from_ind+1:]
+        data = itertools.product(*[tables[table_name]["data"]
+                                   for table_name in table_names])
+        columns = []
+        for table_name in table_names:
+            for column in tables[table_name]["columns"]:
+                columns.append(column)
+        Project(data, columns)
 
 
 if __name__ == '__main__':
     tables = Get_tables()
-    # print_tables(tables)
-    Project(tables, 'table1', ['A', 'B'])
-    #Sum(tables, 'table1', 'A')
-    #Average(tables, 'table1', 'A')
-    #Max(tables, 'table1', 'A')
-    #Min(tables, 'table1', 'A')
-    #Count(tables, 'table1', 'A')
-    Distinct(tables, 'table1', ['A', 'B'])
+    # Print_tables(tables)
+    #Project(tables, 'table1', ['A', 'B'])
+    #print(Sum(tables, 'table1', 'A'))
+    #print(Average(tables, 'table1', 'A'))
+    #print(Max(tables, 'table1', 'A'))
+    #print(Min(tables, 'table1', 'A'))
+    #print(Count(tables, 'table1', 'A'))
+    #Project(Distinct(tables, 'table1', ['A', 'B']), ['A', 'B'])
+    Parse(tables)
