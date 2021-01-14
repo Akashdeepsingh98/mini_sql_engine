@@ -1,4 +1,6 @@
 import itertools
+import json
+from moz_sql_parser import parse
 
 Operators = {
     ">=": (lambda x, y: x >= y),
@@ -53,10 +55,15 @@ def Project(data, columns):
         print(column, end='   ')
     print()
     for row in data:
-        unrolled = list(itertools.chain.from_iterable(row))
-        for ele in unrolled:
-            print(ele, end='   ')
-        print()
+        if not isinstance(row[0], int):
+            unrolled = list(itertools.chain.from_iterable(row))
+            for ele in unrolled:
+                print(ele, end='   ')
+            print()
+        else:
+            for ele in row:
+                print(ele, end='   ')
+            print()
 
 
 def Get_tables():
@@ -125,22 +132,39 @@ def Where(tables, table_name, columns, conditions):
 
 
 def Parse(tables):
-    userin = "SELECT * FROM table1, table2"
-    tokens = userin.lower().strip().split(' ')
-    for i in range(len(tokens)):
-        tokens[i] = tokens[i].strip(',')
-    if 'where' in tokens:
-        pass
-    else:
-        from_ind = tokens.index('from')
-        table_names = tokens[from_ind+1:]
-        data = itertools.product(*[tables[table_name]["data"]
-                                   for table_name in table_names])
-        columns = []
-        for table_name in table_names:
-            for column in tables[table_name]["columns"]:
-                columns.append(column)
-        Project(data, columns)
+    userin = "SELECT * FROM table1,table2"
+    tokens = parse(userin)
+    print(tokens)
+    if tokens['select'] == '*':
+        if isinstance(tokens['from'], list):
+            data = itertools.product(
+                *[tables[table_name]["data"] for table_name in tokens['from']])
+            columns = []
+            for table_name in tokens['from']:
+                for column in tables[table_name]["columns"]:
+                    columns.append(column)
+            Project(data, columns)
+        else:
+            table_name = tokens['from']
+            data = tables[table_name]["data"]
+            Project(data, tables[table_name]["columns"])
+    
+
+    #tokens = userin.lower().strip().split(' ')
+    # for i in range(len(tokens)):
+    #    tokens[i] = tokens[i].strip(',')
+    # if 'where' in tokens:
+    #    pass
+    # else:
+    #    from_ind = tokens.index('from')
+    #    table_names = tokens[from_ind+1:]
+    #    data = itertools.product(*[tables[table_name]["data"]
+    #                               for table_name in table_names])
+    #    columns = []
+    #    for table_name in table_names:
+    #        for column in tables[table_name]["columns"]:
+    #            columns.append(column)
+    #    Project(data, columns)
 
 
 if __name__ == '__main__':
