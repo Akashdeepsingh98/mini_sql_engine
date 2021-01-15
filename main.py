@@ -3,11 +3,11 @@ import json
 from moz_sql_parser import parse
 
 Operators = {
-    ">=": (lambda x, y: x >= y),
-    "<=": (lambda x, y: x <= y),
-    ">": (lambda x, y: x > y),
-    "<": (lambda x, y: x < y),
-    "=": (lambda x, y: x == y)
+    "gte": (lambda x, y: x >= y),
+    "lte": (lambda x, y: x <= y),
+    "gt": (lambda x, y: x > y),
+    "lt": (lambda x, y: x < y),
+    "eq": (lambda x, y: x == y)
 }
 
 Binary = {
@@ -148,12 +148,22 @@ def Parse(tables):
             for table_name in tokens['from']:
                 for column in tables[table_name]["columns"]:
                     columns.append(column)
-            #Project(data, columns)
+
+            if 'where' in tokens.keys():
+                if 'and' in tokens['where'].keys():
+                    cond = []
+                    for condition in tokens['where']['and']:
+                        cond.append([])
+                    pass
+                elif 'or' in tokens['where'].keys():
+                    pass
+                else:
+                    pass
+
         else:
             table_name = tokens['from']
             data = tables[table_name]["data"]
             columns = tables[table_name]["columns"]
-            #Project(data, tables[table_name]["columns"])
 
         if 'orderby' in tokens.keys():
             col_ind = columns.index(tokens["orderby"]['value'])
