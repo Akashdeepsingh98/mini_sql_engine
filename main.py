@@ -132,39 +132,39 @@ def Where(tables, table_name, columns, conditions):
 
 
 def Parse(tables):
-    userin = "SELECT * FROM table1,table2"
+    userin = "SELECT * FROM table1,table2 order by A"
     tokens = parse(userin)
     print(tokens)
+    # if 'orderby' in tokens.keys():
+#
+    #    pass
     if tokens['select'] == '*':
+        data = None
+        columns = None
         if isinstance(tokens['from'], list):
-            data = itertools.product(
-                *[tables[table_name]["data"] for table_name in tokens['from']])
+            data = list(itertools.product(
+                *[tables[table_name]["data"] for table_name in tokens['from']]))
             columns = []
             for table_name in tokens['from']:
                 for column in tables[table_name]["columns"]:
                     columns.append(column)
-            Project(data, columns)
+            #Project(data, columns)
         else:
             table_name = tokens['from']
             data = tables[table_name]["data"]
-            Project(data, tables[table_name]["columns"])
-    
+            columns = tables[table_name]["columns"]
+            #Project(data, tables[table_name]["columns"])
 
-    #tokens = userin.lower().strip().split(' ')
-    # for i in range(len(tokens)):
-    #    tokens[i] = tokens[i].strip(',')
-    # if 'where' in tokens:
-    #    pass
-    # else:
-    #    from_ind = tokens.index('from')
-    #    table_names = tokens[from_ind+1:]
-    #    data = itertools.product(*[tables[table_name]["data"]
-    #                               for table_name in table_names])
-    #    columns = []
-    #    for table_name in table_names:
-    #        for column in tables[table_name]["columns"]:
-    #            columns.append(column)
-    #    Project(data, columns)
+        if 'orderby' in tokens.keys():
+            col_ind = columns.index(tokens["orderby"]['value'])
+            if 'sort' in tokens['orderby'].keys():
+                if tokens['order']['sort'] == 'asc':
+                    data.sort(key=lambda x: x[col_ind])
+                else:
+                    data.sort(key=lambda x: x[col_ind], reverse=True)
+            else:
+                data.sort(key=lambda x: x[col_ind])
+        Project(data, columns)
 
 
 if __name__ == '__main__':
