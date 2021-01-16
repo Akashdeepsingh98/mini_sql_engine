@@ -125,7 +125,7 @@ def Distinct(tables, table_name, columns):
 
 
 def Parse(tables):
-    userin = "SELECT A,max(B),count(B) FROM table1 group by A"
+    userin = "SELECT A,max(B),avg(B) FROM table1 group by A"
     tokens = parse(userin)
     print(tokens)
 
@@ -317,12 +317,33 @@ def Parse(tables):
                             distinctval = row[groupcolind]
                             cleanerdata[distinctval][i] = 1 if cleanerdata[distinctval][i] == None else cleanerdata[distinctval][i]+1
                     elif 'min' in col['value'].keys():
-                        cleanercols.append('min('+col['value']['count']+')')
+                        cleanercols.append('min('+col['value']['min']+')')
                         colind = columns.index(col['value']['min'])
                         for row in data:
                             distinctval = row[groupcolind]
                             cleanerdata[distinctval][i] = cleanerdata[distinctval][
                                 i] if (cleanerdata[distinctval][i] != None and cleanerdata[distinctval][i] < row[colind]) else row[colind]
+                    elif 'sum' in col['value'].keys():
+                        cleanercols.append('sum('+col['value']['sum']+')')
+                        colind = columns.index(col['value']['sum'])
+                        for row in data:
+                            distinctval = row[groupcolind]
+                            cleanerdata[distinctval][i] = cleanerdata[distinctval][i] + \
+                                row[colind] if cleanerdata[distinctval][i] != None else row[colind]
+                    elif 'avg' in col['value'].keys():
+                        cleanercols.append('avg('+col['value']['avg']+')')
+                        colind = columns.index(col['value']['avg'])
+                        counter = {}
+                        for distinctval in distinctset:
+                            distinctval = distinctval[0]
+                            counter[distinctval] = 0
+                        for row in data:
+                            distinctval = row[groupcolind]
+                            counter[distinctval] += 1
+                            cleanerdata[distinctval][i] = cleanerdata[distinctval][i] + \
+                                row[colind] if cleanerdata[distinctval][i] != None else row[colind]
+                        for distinctval in cleanerdata.keys():
+                            cleanerdata[distinctval][i] /= counter[distinctval]
                 else:
                     colind = columns.index(col['value'])
                     cleanercols.append(col['value'])
