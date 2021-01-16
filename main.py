@@ -126,7 +126,7 @@ def Distinct(tables, table_name, columns):
 
 
 def Parse(tables):
-    userin = "SELECT * FROM table1 where A>900 or C>5000"
+    userin = "SELECT * FROM table1 where A>B"
     tokens = parse(userin)
     print(tokens)
 
@@ -171,7 +171,7 @@ def Parse(tables):
                     col2ind = columns.index(col2)
                     cleanerdata = []
                     for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) and (Operators[comp2](row[col2ind], bound2)):
+                        if (Operators[comp1](row[col1ind], bound1 if isinstance(bound1, int) else row[columns.index(bound1)])) and (Operators[comp2](row[col2ind], bound2 if isinstance(bound2, int) else row[columns.index(bound2)])):
                             cleanerdata.append(row)
                     data = cleanerdata
 
@@ -198,7 +198,7 @@ def Parse(tables):
                     col2ind = columns.index(col2)
                     cleanerdata = []
                     for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) or (Operators[comp2](row[col2ind], bound2)):
+                        if (Operators[comp1](row[col1ind], bound1 if isinstance(bound1, int) else row[columns.index(bound1)])) or (Operators[comp2](row[col2ind], bound2 if isinstance(bound2, int) else row[columns.index(bound2)])):
                             cleanerdata.append(row)
                     data = cleanerdata
 
@@ -213,7 +213,7 @@ def Parse(tables):
                     colind = columns.index(col)
                     cleanerdata = []
                     for i in range(len(data)):
-                        if Operators[comp](data[i][colind], bound):
+                        if Operators[comp](data[i][colind], bound if isinstance(bound, int) else data[i][columns.index(bound)]):
                             cleanerdata.append(data[i])
                     data = cleanerdata
 
@@ -242,7 +242,7 @@ def Parse(tables):
                     col2ind = columns.index(col2)
                     cleanerdata = []
                     for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) and (Operators[comp2](row[col2ind], bound2)):
+                        if (Operators[comp1](row[col1ind], bound1 if isinstance(bound1, int) else row[columns.index(bound1)])) and (Operators[comp2](row[col2ind], bound2 if isinstance(bound2, int) else row[columns.index(bound2)])):
                             cleanerdata.append(row)
                     data = cleanerdata
 
@@ -266,7 +266,7 @@ def Parse(tables):
                     col2ind = columns.index(col2)
                     cleanerdata = []
                     for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) or (Operators[comp2](row[col2ind], bound2)):
+                        if (Operators[comp1](row[col1ind], bound1 if isinstance(bound1, int) else row[columns.index(bound1)])) or (Operators[comp2](row[col2ind], bound2 if isinstance(bound2, int) else row[columns.index(bound2)])):
                             cleanerdata.append(row)
                     data = cleanerdata
 
@@ -281,7 +281,7 @@ def Parse(tables):
                     colind = columns.index(col)
                     cleanerdata = []
                     for i in range(len(data)):
-                        if Operators[comp](data[i][colind], bound):
+                        if Operators[comp](data[i][colind], bound if isinstance(bound, int) else data[i][columns.index(bound)]):
                             cleanerdata.append(data[i])
                     data = cleanerdata
 
@@ -294,184 +294,14 @@ def Parse(tables):
                     data.sort(key=lambda x: x[col_ind], reverse=True)
             else:
                 data.sort(key=lambda x: x[col_ind])
-        
+
         if 'groupby' in tokens.keys():
             groupcol = tokens['groupby']['value']
 
         Project(data, columns)
 
 
-
-## columns given
-    else:
-        data = None
-        columns = None
-        if isinstance(tokens['from'], list):
-            data = list(itertools.product(
-                *[tables[table_name]["data"] for table_name in tokens['from']]))
-            cleandata = []
-            for i in range(len(data)):
-                row = list(itertools.chain.from_iterable(list(data[i])))
-                cleandata.append(row)
-            data = cleandata
-
-            columns = []
-            for table_name in tokens['from']:
-                for column in tables[table_name]["columns"]:
-                    columns.append(column)
-
-            if 'where' in tokens.keys():
-                if 'and' in tokens['where'].keys():
-                    cond = []
-                    i = 0
-                    for condition in tokens['where']['and']:
-                        cond.append([])
-                        for key in condition.keys():
-                            cond[i].append(tokens['where']['and'][i][key][0])
-                            cond[i].append(key)
-                            cond[i].append(tokens['where']['and'][i][key][1])
-                            for table_name in tables.keys():
-                                if tokens['where']['and'][i][key][0] in tables[table_name]["columns"]:
-                                    cond[i].append(table_name)
-                        i += 1
-                    col1 = cond[0][0]
-                    col2 = cond[1][0]
-                    comp1 = cond[0][1]
-                    comp2 = cond[1][1]
-                    bound1 = cond[0][2]
-                    bound2 = cond[1][2]
-                    col1ind = columns.index(col1)
-                    col2ind = columns.index(col2)
-                    cleanerdata = []
-                    for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) and (Operators[comp2](row[col2ind], bound2)):
-                            cleanerdata.append(row)
-                    data = cleanerdata
-
-                elif 'or' in tokens['where'].keys():
-                    cond = []
-                    i = 0
-                    for condition in tokens['where']['or']:
-                        cond.append([])
-                        for key in condition.keys():
-                            cond[i].append(tokens['where']['or'][i][key][0])
-                            cond[i].append(key)
-                            cond[i].append(tokens['where']['or'][i][key][1])
-                            for table_name in tables.keys():
-                                if tokens['where']['or'][i][key][0] in tables[table_name]["columns"]:
-                                    cond[i].append(table_name)
-                        i += 1
-                    col1 = cond[0][0]
-                    col2 = cond[1][0]
-                    comp1 = cond[0][1]
-                    comp2 = cond[1][1]
-                    bound1 = cond[0][2]
-                    bound2 = cond[1][2]
-                    col1ind = columns.index(col1)
-                    col2ind = columns.index(col2)
-                    cleanerdata = []
-                    for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) or (Operators[comp2](row[col2ind], bound2)):
-                            cleanerdata.append(row)
-                    data = cleanerdata
-
-                else:
-                    col = None
-                    bound = None
-                    comp = None
-                    for key in tokens['where'].keys():
-                        comp = key
-                        col = tokens['where'][key][0]
-                        bound = tokens['where'][key][1]
-                    colind = columns.index(col)
-                    cleanerdata = []
-                    for i in range(len(data)):
-                        if Operators[comp](data[i][colind], bound):
-                            cleanerdata.append(data[i])
-                    data = cleanerdata
-
-        else:
-            table_name = tokens['from']
-            data = tables[table_name]["data"]
-            columns = tables[table_name]["columns"]
-            if 'where' in tokens.keys():
-                if 'and' in tokens['where'].keys():
-                    cond = []
-                    i = 0
-                    for condition in tokens['where']['and']:
-                        cond.append([])
-                        for key in condition.keys():
-                            cond[i].append(tokens['where']['and'][i][key][0])
-                            cond[i].append(key)
-                            cond[i].append(tokens['where']['and'][i][key][1])
-                        i += 1
-                    col1 = cond[0][0]
-                    col2 = cond[1][0]
-                    comp1 = cond[0][1]
-                    comp2 = cond[1][1]
-                    bound1 = cond[0][2]
-                    bound2 = cond[1][2]
-                    col1ind = columns.index(col1)
-                    col2ind = columns.index(col2)
-                    cleanerdata = []
-                    for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) and (Operators[comp2](row[col2ind], bound2)):
-                            cleanerdata.append(row)
-                    data = cleanerdata
-
-                elif 'or' in tokens['where'].keys():
-                    cond = []
-                    i = 0
-                    for condition in tokens['where']['or']:
-                        cond.append([])
-                        for key in condition.keys():
-                            cond[i].append(tokens['where']['or'][i][key][0])
-                            cond[i].append(key)
-                            cond[i].append(tokens['where']['or'][i][key][1])
-                        i += 1
-                    col1 = cond[0][0]
-                    col2 = cond[1][0]
-                    comp1 = cond[0][1]
-                    comp2 = cond[1][1]
-                    bound1 = cond[0][2]
-                    bound2 = cond[1][2]
-                    col1ind = columns.index(col1)
-                    col2ind = columns.index(col2)
-                    cleanerdata = []
-                    for row in data:
-                        if (Operators[comp1](row[col1ind], bound1)) or (Operators[comp2](row[col2ind], bound2)):
-                            cleanerdata.append(row)
-                    data = cleanerdata
-
-                else:
-                    col = None
-                    bound = None
-                    comp = None
-                    for key in tokens['where'].keys():
-                        comp = key
-                        col = tokens['where'][key][0]
-                        bound = tokens['where'][key][1]
-                    colind = columns.index(col)
-                    cleanerdata = []
-                    for i in range(len(data)):
-                        if Operators[comp](data[i][colind], bound):
-                            cleanerdata.append(data[i])
-                    data = cleanerdata
-
-        if 'orderby' in tokens.keys():
-            col_ind = columns.index(tokens["orderby"]['value'])
-            if 'sort' in tokens['orderby'].keys():
-                if tokens['order']['sort'] == 'asc':
-                    data.sort(key=lambda x: x[col_ind])
-                else:
-                    data.sort(key=lambda x: x[col_ind], reverse=True)
-            else:
-                data.sort(key=lambda x: x[col_ind])
-        if isinstance(tokens['select'],list):
-            pass
-        else:
-            pass
-        Project(data, columns)
+# columns given
 
 
 if __name__ == '__main__':
