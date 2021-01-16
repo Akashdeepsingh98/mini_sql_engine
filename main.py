@@ -1,5 +1,4 @@
 import itertools
-import json
 from moz_sql_parser import parse
 
 Operators = {
@@ -126,11 +125,11 @@ def Distinct(tables, table_name, columns):
 
 
 def Parse(tables):
-    userin = "SELECT * FROM table1 where A>B"
+    userin = "SELECT A,max(B),count(B) FROM table1 group by A"
     tokens = parse(userin)
     print(tokens)
 
-    if tokens['select'] == '*':
+    if tokens['select'] == '*' or True:
         data = None
         columns = None
         if isinstance(tokens['from'], list):
@@ -217,6 +216,7 @@ def Parse(tables):
                             cleanerdata.append(data[i])
                     data = cleanerdata
 
+        # just one table
         else:
             table_name = tokens['from']
             data = tables[table_name]["data"]
@@ -285,6 +285,57 @@ def Parse(tables):
                             cleanerdata.append(data[i])
                     data = cleanerdata
 
+        # group by work
+        if 'groupby' in tokens.keys():
+            groupcol = tokens['groupby']['value']
+            groupcolind = columns.index(groupcol)
+            table_name = None
+            for tn in tables.keys():
+                if groupcol in tables[tn]["columns"]:
+                    table_name = tn
+                    break
+            distinctset = Distinct(tables, table_name, groupcol)
+            cleanerdata = {}
+            cleanercols = []
+            for val in distinctset:
+                val = val[0]
+                cleanerdata[val] = [None]*len(tokens['select'])
+            i = 0
+            for col in tokens['select']:
+                if isinstance(col['value'], dict):
+                    if 'max' in col['value'].keys():
+                        cleanercols.append('max('+col['value']['max']+')')
+                        colind = columns.index(col['value']['max'])
+                        for row in data:
+                            distinctval = row[groupcolind]
+                            cleanerdata[distinctval][i] = cleanerdata[distinctval][
+                                i] if (cleanerdata[distinctval][i] != None and cleanerdata[distinctval][i] > row[colind]) else row[colind]
+                    elif 'count' in col['value'].keys():
+                        cleanercols.append('count('+col['value']['count']+')')
+                        colind = columns.index(col['value']['count'])
+                        for row in data:
+                            distinctval = row[groupcolind]
+                            cleanerdata[distinctval][i] = 1 if cleanerdata[distinctval][i] == None else cleanerdata[distinctval][i]+1
+                    elif 'min' in col['value'].keys():
+                        cleanercols.append('min('+col['value']['count']+')')
+                        colind = columns.index(col['value']['min'])
+                        for row in data:
+                            distinctval = row[groupcolind]
+                            cleanerdata[distinctval][i] = cleanerdata[distinctval][
+                                i] if (cleanerdata[distinctval][i] != None and cleanerdata[distinctval][i] < row[colind]) else row[colind]
+                else:
+                    colind = columns.index(col['value'])
+                    cleanercols.append(col['value'])
+                    for row in data:
+                        distinctval = row[groupcolind]
+                        cleanerdata[distinctval][i] = row[colind]
+                i += 1
+            columns = cleanercols
+            data = []
+            for row in cleanerdata.values():
+                data.append(row)
+
+        # order by work
         if 'orderby' in tokens.keys():
             col_ind = columns.index(tokens["orderby"]['value'])
             if 'sort' in tokens['orderby'].keys():
@@ -294,9 +345,6 @@ def Parse(tables):
                     data.sort(key=lambda x: x[col_ind], reverse=True)
             else:
                 data.sort(key=lambda x: x[col_ind])
-
-        if 'groupby' in tokens.keys():
-            groupcol = tokens['groupby']['value']
 
         Project(data, columns)
 
