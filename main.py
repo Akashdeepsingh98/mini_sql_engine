@@ -115,7 +115,7 @@ def Count(tables, table_name, column):
 
 
 def Distinct(tables, table_name, columns):
-    distinctset = set()
+    distinctset = []
     # get indexes of columns
     indexes = []
     for column in columns:
@@ -124,13 +124,15 @@ def Distinct(tables, table_name, columns):
         row = []
         for j in indexes:
             row.append(tables[table_name]["data"][i][j])
-        distinctset.add(tuple(row))
+        if row not in distinctset:
+            distinctset.append(row)
     return distinctset
 
 
 def Parse(tables):
-    userin = "SELECT * from table2;"
+    userin = "SELECT distinct A,B from table1;"
     tokens = parse(userin)
+    aggregatework = False
     print(tokens)
 
     data = None
@@ -219,6 +221,51 @@ def Parse(tables):
         table_name = tokens['from']
         data = tables[table_name]["data"]
         columns = tables[table_name]["columns"]
+        if not tokens['select'] == '*' and not isinstance(tokens['select'], list) and isinstance(tokens['select']['value'], dict):
+            aggregatework = True
+            if 'max' in tokens['select']['value'].keys():
+                result = Max(tables, tokens['from'],
+                             tokens['select']['value']['max'])
+                print('max('+tokens['from']+'.' +
+                      tokens['select']['value']['max'].lower()+')')
+                print(result)
+            elif 'min' in tokens['select']['value'].keys():
+                result = Min(tables, tokens['from'],
+                             tokens['select']['value']['min'])
+                print('min('+tokens['from']+'.' +
+                      tokens['select']['value']['min'].lower()+')')
+                print(result)
+            elif 'count' in tokens['select']['value'].keys():
+                result = Count(tables, tokens['from'],
+                               tokens['select']['value']['count'])
+                print('count('+tokens['from']+'.' +
+                      tokens['select']['value']['count'].lower()+')')
+                print(result)
+            elif 'sum' in tokens['select']['value'].keys():
+                result = Sum(tables, tokens['from'],
+                             tokens['select']['value']['sum'])
+                print('sum('+tokens['from']+'.' +
+                      tokens['select']['value']['sum'].lower()+')')
+                print(result)
+            elif 'avg' in tokens['select']['value'].keys():
+                result = Average(tables, tokens['from'],
+                                 tokens['select']['value']['avg'])
+                print('avg('+tokens['from']+'.' +
+                      tokens['select']['value']['avg'].lower()+')')
+                print(result)
+            elif 'distinct' in tokens['select']['value'].keys():
+                result = None
+                cleanercols = []
+                if isinstance(tokens['select']['value']['distinct'], list):
+                    for value in tokens['select']['value']['distinct']:
+                        cleanercols.append(value['value'])
+                    pass
+                else:
+                    cleanercols.append(tokens['select']['value']['distinct'])
+                    pass
+                data = Distinct(tables, table_name, cleanercols)
+                columns = cleanercols
+                Project(data, columns)
         if 'where' in tokens.keys():
             if 'and' in tokens['where'].keys():
                 cond = []
@@ -290,6 +337,7 @@ def Parse(tables):
                 data.sort(key=lambda x: x[col_ind], reverse=True)
         else:
             data.sort(key=lambda x: x[col_ind])
+
     # group by work
     if 'groupby' in tokens.keys():
         groupcol = tokens['groupby']['value']
@@ -299,12 +347,18 @@ def Parse(tables):
             if groupcol in tables[tn]["columns"]:
                 table_name = tn
                 break
-        distinctset = Distinct(tables, table_name, groupcol)
+
+        distinctset = []
         cleanerdata = {}
         cleanercols = []
-        for val in distinctset:
-            val = val[0]
-            cleanerdata[val] = [None]*len(tokens['select'])
+        for row in data:
+            distinctset.append(row[groupcolind])
+            if distinctset[-1] in distinctset[:-1]:
+                distinctset.pop(-1)
+            else:
+                cleanerdata[distinctset[-1]] = [None]*len(tokens['select'])
+                print(distinctset[-1])
+
         i = 0
         for col in tokens['select']:
             if isinstance(col['value'], dict):
@@ -340,7 +394,6 @@ def Parse(tables):
                     colind = columns.index(col['value']['avg'])
                     counter = {}
                     for distinctval in distinctset:
-                        distinctval = distinctval[0]
                         counter[distinctval] = 0
                     for row in data:
                         distinctval = row[groupcolind]
@@ -361,27 +414,23 @@ def Parse(tables):
         for row in cleanerdata.values():
             data.append(row)
     # if no group by then select columns
-    else:
-        if tokens['select'] != '*':
-            cleanerdata = []
-            cleanercols = []
-            colinds = []
-            for col in tokens['select']:
-                colinds.append(columns.index(col['value']))
-                cleanercols.append(col['value'])
-            for row in data:
-                cleanerdata.append([])
-                for ind in colinds:
-                    # work here clean the data, remove unnecessary columns
-                    cleanerdata[-1].append(row[ind])
-                if cleanerdata[-1] in cleanerdata[:-1]:
-                    cleanerdata.pop(-1)
-            columns = cleanercols
-            data = cleanerdata
-    Project(data, columns)
-
-
-# columns given
+    elif tokens['select'] != '*' and not aggregatework:
+        cleanerdata = []
+        cleanercols = []
+        colinds = []
+        for col in tokens['select']:
+            colinds.append(columns.index(col['value']))
+            cleanercols.append(col['value'])
+        for row in data:
+            cleanerdata.append([])
+            for ind in colinds:
+                cleanerdata[-1].append(row[ind])
+            if cleanerdata[-1] in cleanerdata[:-1]:
+                cleanerdata.pop(-1)
+        columns = cleanercols
+        data = cleanerdata
+    if not aggregatework:
+        Project(data, columns)
 
 
 if __name__ == '__main__':
