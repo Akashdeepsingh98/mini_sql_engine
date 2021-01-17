@@ -129,9 +129,9 @@ def Distinct(tables, table_name, columns):
     return distinctset
 
 
-def Parse(tables):
-    userin = "SELECT distinct A,B from table1;"
-    tokens = parse(userin)
+def Parse(tables, query):
+    #userin = "SELECT distinct A,B from table1;"
+    tokens = parse(query)
     aggregatework = False
     print(tokens)
 
@@ -443,4 +443,5 @@ if __name__ == '__main__':
     #print(Min(tables, 'table1', 'A'))
     #print(Count(tables, 'table1', 'A'))
     #Project(Distinct(tables, 'table1', ['A', 'B']), ['A', 'B'])
-    Parse(tables)
+    query = input()
+    Parse(tables, query)
