@@ -1,4 +1,4 @@
-import itertools
+import itertools, sys
 from moz_sql_parser import parse
 
 Operators = {
@@ -133,7 +133,7 @@ def Parse(tables, query):
     #userin = "SELECT distinct A,B from table1;"
     tokens = parse(query)
     aggregatework = False
-    print(tokens)
+    #print(tokens)
 
     data = None
     columns = None
@@ -443,5 +443,9 @@ if __name__ == '__main__':
     #print(Min(tables, 'table1', 'A'))
     #print(Count(tables, 'table1', 'A'))
     #Project(Distinct(tables, 'table1', ['A', 'B']), ['A', 'B'])
-    query = input()
-    Parse(tables, query)
+    query = sys.argv[1:]
+    stuff=''
+    for ele in query:
+        stuff+=ele+' '
+    print(stuff)
+    Parse(tables, stuff)

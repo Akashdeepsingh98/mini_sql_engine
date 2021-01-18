@@ -1,5 +1,2 @@
-#!/bin/sh
-echo "$@"
-myargs=( "$@" )
-echo "$myarray"
-python main.py "$myarray"
+#!/usr/bin/env bash
+python main.py "$1"
