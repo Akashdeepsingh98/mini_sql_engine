@@ -1,4 +1,5 @@
-import itertools, sys
+import itertools
+import sys
 from moz_sql_parser import parse
 
 Operators = {
@@ -53,9 +54,12 @@ def Get_table(Lines, start):
     return table_name, table, start
 
 
-def Project(data, columns):
+def Project(tables, data, columns):
     for column in columns:
-        print(column, end='   ')
+        for table_name in tables.keys():
+            if column in tables[table_name]['columns']:
+                print(table_name+'.'+column.lower(), end='   ')
+                break
     print()
     for row in data:
         if not isinstance(row[0], int):
@@ -133,7 +137,7 @@ def Parse(tables, query):
     #userin = "SELECT distinct A,B from table1;"
     tokens = parse(query)
     aggregatework = False
-    #print(tokens)
+    # print(tokens)
 
     data = None
     columns = None
@@ -265,7 +269,7 @@ def Parse(tables, query):
                     pass
                 data = Distinct(tables, table_name, cleanercols)
                 columns = cleanercols
-                Project(data, columns)
+                Project(tables, data, columns)
         if 'where' in tokens.keys():
             if 'and' in tokens['where'].keys():
                 cond = []
@@ -430,7 +434,7 @@ def Parse(tables, query):
         columns = cleanercols
         data = cleanerdata
     if not aggregatework:
-        Project(data, columns)
+        Project(tables, data, columns)
 
 
 if __name__ == '__main__':
@@ -444,8 +448,8 @@ if __name__ == '__main__':
     #print(Count(tables, 'table1', 'A'))
     #Project(Distinct(tables, 'table1', ['A', 'B']), ['A', 'B'])
     query = sys.argv[1:]
-    stuff=''
+    stuff = ''
     for ele in query:
-        stuff+=ele+' '
+        stuff += ele+' '
     print(stuff)
     Parse(tables, stuff)
