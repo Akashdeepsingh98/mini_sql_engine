@@ -58,7 +58,7 @@ def Project(tables, data, columns):
     for column in columns:
         for table_name in tables.keys():
             if column in tables[table_name]['columns']:
-                print(table_name+'.'+column.lower(), end='   ')
+                print(table_name+'.'+column, end='   ')
                 break
     print()
     for row in data:
@@ -134,10 +134,8 @@ def Distinct(tables, table_name, columns):
 
 
 def Parse(tables, query):
-    #userin = "SELECT distinct A,B from table1;"
     tokens = parse(query)
     aggregatework = False
-    # print(tokens)
 
     data = None
     columns = None
@@ -231,31 +229,31 @@ def Parse(tables, query):
                 result = Max(tables, tokens['from'],
                              tokens['select']['value']['max'])
                 print('max('+tokens['from']+'.' +
-                      tokens['select']['value']['max'].lower()+')')
+                      tokens['select']['value']['max']+')')
                 print(result)
             elif 'min' in tokens['select']['value'].keys():
                 result = Min(tables, tokens['from'],
                              tokens['select']['value']['min'])
                 print('min('+tokens['from']+'.' +
-                      tokens['select']['value']['min'].lower()+')')
+                      tokens['select']['value']['min'] +')')
                 print(result)
             elif 'count' in tokens['select']['value'].keys():
                 result = Count(tables, tokens['from'],
                                tokens['select']['value']['count'])
                 print('count('+tokens['from']+'.' +
-                      tokens['select']['value']['count'].lower()+')')
+                      tokens['select']['value']['count'] +')')
                 print(result)
             elif 'sum' in tokens['select']['value'].keys():
                 result = Sum(tables, tokens['from'],
                              tokens['select']['value']['sum'])
                 print('sum('+tokens['from']+'.' +
-                      tokens['select']['value']['sum'].lower()+')')
+                      tokens['select']['value']['sum'] +')')
                 print(result)
             elif 'avg' in tokens['select']['value'].keys():
                 result = Average(tables, tokens['from'],
                                  tokens['select']['value']['avg'])
                 print('avg('+tokens['from']+'.' +
-                      tokens['select']['value']['avg'].lower()+')')
+                      tokens['select']['value']['avg'] +')')
                 print(result)
             elif 'distinct' in tokens['select']['value'].keys():
                 result = None
@@ -439,17 +437,8 @@ def Parse(tables, query):
 
 if __name__ == '__main__':
     tables = Get_tables()
-    # Print_tables(tables)
-    #Project(tables, 'table1', ['A', 'B'])
-    #print(Sum(tables, 'table1', 'A'))
-    #print(Average(tables, 'table1', 'A'))
-    #print(Max(tables, 'table1', 'A'))
-    #print(Min(tables, 'table1', 'A'))
-    #print(Count(tables, 'table1', 'A'))
-    #Project(Distinct(tables, 'table1', ['A', 'B']), ['A', 'B'])
     query = sys.argv[1:]
     stuff = ''
     for ele in query:
         stuff += ele+' '
-    print(stuff)
     Parse(tables, stuff)
