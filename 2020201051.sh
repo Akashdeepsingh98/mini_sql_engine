@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python main.py "$1"
+python 2020201051.py "$1"

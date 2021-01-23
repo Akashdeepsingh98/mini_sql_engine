@@ -263,7 +263,7 @@ def Parse(tables, query):
                         cleanercols.append(value['value'])
                     pass
                 else:
-                    cleanercols.append(tokens['select']['value']['distinct'])
+                    cleanercols.append(tokens['select']['value']['distinct']['value'])
                     pass
                 data = Distinct(tables, table_name, cleanercols)
                 columns = cleanercols
